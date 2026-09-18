@@ -1,4 +1,4 @@
-from django.core.cache import cache, CacheKeyWarning
+from django.core.cache import CacheKeyWarning
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
@@ -624,14 +624,16 @@ class CacheKeySafetyTest(TestCase):
     raise CacheKeyWarning when a key would break, so these tests promote that
     warning to an error and then exercise the code paths that build keys.
 
-    See Github #8.
+    See GitHub #8.
     """
 
     def setUp(self):
         # The cache outlives an individual test, and these tests deliberately
         # cache values under arguments that other tests use too, so start from
-        # a clean cache and leave a clean one behind.
-        cache.clear()
+        # empty caches and leave empty ones behind. dump_all_caches() calls
+        # delete_all() on every registered cache, which works on any backend;
+        # not every backend implements cache.clear().
+        registry.dump_all_caches()
         self.reporter = Reporter.objects.create(
             pk=1, first_name='John', last_name='Doe')
         self.article = Article.objects.create(
@@ -639,7 +641,7 @@ class CacheKeySafetyTest(TestCase):
             reporter=self.reporter)
 
     def tearDown(self):
-        cache.clear()
+        registry.dump_all_caches()
         get_calls_reset()
         counter[0] = 0
 
