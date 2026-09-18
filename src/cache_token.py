@@ -23,12 +23,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import hashlib
 import random
 
 from django.core.cache import cache
 
-from .marinade import marinade_dish
+from .marinade import hash_key
 from .key_set import has_wildcard, specifies_key
 
 __all__ = ['Token', 'ExternalToken']
@@ -93,11 +92,9 @@ class Token(object):
 
     def key_filt(self, filt):
         """ Given filtered arguments, returns a key."""
-        # Hashed for the same reason as ArgCache.key(); see the comment
-        # there. The TOKEN__ prefix and the token's name are preserved.
-        raw = ':'.join([marinade_dish(arg) for arg in filt])
-        digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()
-        return 'TOKEN__' + self.name + '|' + digest
+        # The global token shares its name with its cache, so the prefix
+        # is what keeps token keys apart from value keys.
+        return 'TOKEN__' + hash_key(self.name, filt)
 
     def delete_key_set(self, key_set, send_signal=True):
         """ Given a filtered set of arguments, deletes things. """

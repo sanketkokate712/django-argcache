@@ -23,8 +23,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import hashlib
-
 from django.core.cache import cache
 from django.dispatch import Signal
 from django.db.models import signals
@@ -33,7 +31,7 @@ from django.conf import settings
 from .queued import add_lazy_dependency
 from .cache_token import Token, SingleEntryToken
 from .key_set import specifies_key, token_list_for
-from .marinade import marinade_dish
+from .marinade import hash_key
 from .registry import register_cache
 from .sad_face import warn_if_loaded
 from .signals import cache_deleted
@@ -227,13 +225,7 @@ class ArgCache(object):
 
     def key(self, arg_list):
         """ Returns a cache key, given a list of arguments. """
-        # Marinaded arguments can contain spaces, control characters and
-        # arbitrarily long values, none of which memcached accepts, so the
-        # variable part of the key gets hashed. The cache's own name stays
-        # in front, unhashed, so keys remain recognizable when debugging.
-        raw = ':'.join([marinade_dish(arg) for arg in arg_list])
-        digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()
-        return self.name + '|' + digest
+        return hash_key(self.name, arg_list)
 
     def _token_keys(self, arg_list):
         """ Returns a list of keys to grab for all the tokens. """
