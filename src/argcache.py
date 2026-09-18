@@ -33,7 +33,7 @@ from django.conf import settings
 from .queued import add_lazy_dependency
 from .cache_token import Token, SingleEntryToken
 from .key_set import specifies_key, token_list_for
-from .marinade import marinade_dish_str
+from .marinade import marinade_dish
 from .registry import register_cache
 from .sad_face import warn_if_loaded
 from .signals import cache_deleted
@@ -231,7 +231,7 @@ class ArgCache(object):
         # arbitrarily long values, none of which memcached accepts, so the
         # variable part of the key gets hashed. The cache's own name stays
         # in front, unhashed, so keys remain recognizable when debugging.
-        raw = ':'.join([marinade_dish_str(arg) for arg in arg_list])
+        raw = ':'.join([marinade_dish(arg) for arg in arg_list])
         digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()
         return self.name + '|' + digest
 

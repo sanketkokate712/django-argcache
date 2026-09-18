@@ -28,7 +28,7 @@ import random
 
 from django.core.cache import cache
 
-from .marinade import marinade_dish_str
+from .marinade import marinade_dish
 from .key_set import has_wildcard, specifies_key
 
 __all__ = ['Token', 'ExternalToken']
@@ -95,7 +95,7 @@ class Token(object):
         """ Given filtered arguments, returns a key."""
         # Hashed for the same reason as ArgCache.key(); see the comment
         # there. The TOKEN__ prefix and the token's name are preserved.
-        raw = ':'.join([marinade_dish_str(arg) for arg in filt])
+        raw = ':'.join([marinade_dish(arg) for arg in filt])
         digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()
         return 'TOKEN__' + self.name + '|' + digest
 
